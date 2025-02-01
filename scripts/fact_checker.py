@@ -7,10 +7,13 @@ import requests
 from bs4 import BeautifulSoup
 from typing import List
 import string
+import dotenv
+import os
 
+dotenv.load_dotenv(os.getenv('COHERE_API_KEY'))
 
 # Step 1: Initialize Cohere Client
-cohere_client = cohere.Client('RxSPixDw28aNcvuOvUJivFUiepCOiByY4eBmrY2p')  # Replace with your Cohere API key
+cohere_client = cohere.Client()  # Replace with your Cohere API key
 
 # Step 2: Initialize LLM with Cohere
 llm = ChatCohere(
