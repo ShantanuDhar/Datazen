@@ -1,0 +1,18 @@
+Flask
+flask-cors
+langchain
+neo4j
+numpy
+pandas
+plotly
+kaleido
+requests
+scikit-learn
+seaborn
+sentence-transformers
+yfinance
+beautifulsoup4
+lxml
+matplotlib
+python-dotenv
+# gunicorn
