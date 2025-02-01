@@ -15,4 +15,8 @@ beautifulsoup4
 lxml
 matplotlib
 python-dotenv
-# gunicorn
+tensorflow
+prophet
+python-louvain
+statsmodels
+pmdarima
