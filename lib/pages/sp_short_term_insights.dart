@@ -1,8 +1,9 @@
 import 'package:datazen/apikeys.dart';
+import 'package:datazen/core/globalvariables.dart';
+import 'package:datazen/pages/sp_ticker_list_page.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:intl/intl.dart';
 
 class ShortTermInsightsPage extends StatefulWidget {
@@ -22,6 +23,12 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
     fetchNews();
   }
 
+  @override
+  void dispose() {
+    super.dispose();
+    newsArticles = [];
+  }
+
   Future<void> fetchNews() async {
     try {
       final response = await http.get(Uri.parse(apiUrl));
@@ -32,10 +39,10 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
           expandedList = List.generate(newsArticles.length, (index) => false);
         });
       } else {
-        print("Error fetching news: ${response.statusCode}");
+        print("Error fetching news: \${response.statusCode}");
       }
     } catch (e) {
-      print("Exception: $e");
+      print("Exception: \$e");
     }
   }
 
@@ -45,6 +52,7 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
     return DateFormat('yyyy-MM-dd HH:mm').format(date);
   }
 
+  bool isReasonExpanded = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -66,8 +74,21 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
                 final sentimentReason = article['insights']?.isNotEmpty == true
                     ? article['insights'][0]['sentiment_reasoning']
                     : "No sentiment analysis available.";
-                final tickers = article['tickers']?.join(', ') ?? "N/A";
+                final tickers = article['tickers'] ?? [];
                 final formattedDate = formatDate(article['published_utc']);
+
+                Widget _builSentimentReson() {
+                  return Text(
+                    '$sentimentReason',
+                    style: TextStyle(
+                        color: sentiment == "positive"
+                            ? Colors.green
+                            : sentiment == "negative"
+                                ? Colors.red
+                                : Colors.grey,
+                        fontSize: 14),
+                  );
+                }
 
                 return Card(
                   color: Colors.grey[850],
@@ -90,14 +111,13 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
                             : SizedBox.shrink(),
                         SizedBox(height: 10),
                         Text(
-                          "${article['title']} (${tickers})",
+                          "${article['title']}",
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
-                        SizedBox(height: 5),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -112,6 +132,19 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
                                   TextStyle(color: Colors.grey, fontSize: 14),
                             ),
                           ],
+                        ),
+                        SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          children: (article['tickers'] as List<dynamic>?)
+                                  ?.map((ticker) => Chip(
+                                        label: Text(ticker,
+                                            style:
+                                                TextStyle(color: Colors.white)),
+                                        backgroundColor: Colors.blueGrey,
+                                      ))
+                                  .toList() ??
+                              [],
                         ),
                         SizedBox(height: 8),
                         Container(
@@ -133,10 +166,27 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
                           ),
                         ),
                         SizedBox(height: 5),
-                        Text(
-                          sentimentReason,
-                          style: TextStyle(color: Colors.white70, fontSize: 14),
-                        ),
+                        GestureDetector(
+                            onTap: () {
+                              isReasonExpanded = !isReasonExpanded;
+                              print(isReasonExpanded);
+                              setState(() {});
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Text("Show Reason"),
+                            )),
+                        if (isReasonExpanded)
+                          Text(
+                            '$sentimentReason',
+                            style: TextStyle(
+                                color: sentiment == "positive"
+                                    ? Colors.green
+                                    : sentiment == "negative"
+                                        ? Colors.red
+                                        : Colors.grey,
+                                fontSize: 14),
+                          ),
                         SizedBox(height: 10),
                         expandedList[index]
                             ? Text(
@@ -159,23 +209,28 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.blueAccent,
                               ),
-                              child: Text(expandedList[index]
-                                  ? "Show Less"
-                                  : "Read More"),
+                              child: Text(
+                                expandedList[index] ? "Show Less" : "Read More",
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                             ElevatedButton(
-                              onPressed: () async {
-                                final url = article['article_url'];
-                                if (await canLaunch(url)) {
-                                  await launch(url);
-                                } else {
-                                  print("Could not open URL");
-                                }
+                              onPressed: () {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        TickerListPage(tickers: tickers),
+                                  ),
+                                );
                               },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: Colors.redAccent,
                               ),
-                              child: Text("Open Article"),
+                              child: Text(
+                                "Show Tickers",
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ],
                         ),
