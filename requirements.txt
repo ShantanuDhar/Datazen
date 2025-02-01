@@ -22,3 +22,9 @@ statsmodels
 pmdarima
 community
 arch
+langchain-core
+langchain-cohere
+cohere
+requests
+beautifulsoup4
+typing
