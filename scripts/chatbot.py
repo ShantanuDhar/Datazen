@@ -1,7 +1,7 @@
 
 from langchain.chains import GraphCypherQAChain
-from langchain.graphs import Neo4jGraph
-from langchain.llms import Cohere
+from langchain_community.graphs import Neo4jGraph
+from langchain_community.llms import Cohere
 from langchain.prompts import PromptTemplate
 import dotenv
 import os
