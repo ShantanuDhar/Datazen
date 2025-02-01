@@ -202,14 +202,16 @@ class _RecommendationPageState extends State<RecommendationPage>
         child: SafeArea(
           child: FadeTransition(
             opacity: _animation,
-            child: Column(
-              children: [
-                _buildHeader(),
-                _buildSectorChart(),
-                //_buildSectorSelector(),
-                //_buildRecommendationsSection(),
-                _buildActionButtons(),
-              ],
+            child: SingleChildScrollView(
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  _buildSectorChart(),
+                  //_buildSectorSelector(),
+                  //_buildRecommendationsSection(),
+                  _buildActionButtons(),
+                ],
+              ),
             ),
           ),
         ),

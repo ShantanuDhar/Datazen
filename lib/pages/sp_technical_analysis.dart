@@ -3,24 +3,31 @@ import 'package:datazen/core/globalvariables.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-// import 'package:stock_pulse2/core/global_variables.dart';
-
 class TechnicalAnalysisPage extends StatefulWidget {
+  final String stockSymbol;
+
+  TechnicalAnalysisPage({required this.stockSymbol});
+
   @override
   _TechnicalAnalysisPageState createState() => _TechnicalAnalysisPageState();
 }
 
 class _TechnicalAnalysisPageState extends State<TechnicalAnalysisPage> {
-  String stockSymbol = '';
   bool showCharts = false;
   Map<String, dynamic> analysisData = {};
   String errorMessage = '';
+
+  @override
+  void initState() {
+    super.initState();
+    performTechnicalAnalysis();
+  }
 
   Future<void> performTechnicalAnalysis() async {
     final response = await http.post(
       Uri.parse('${GlobalVariable.url}/technical-analyze'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode({'ticker': stockSymbol}),
+      body: jsonEncode({'ticker': widget.stockSymbol}),
     );
 
     if (response.statusCode == 200) {
@@ -29,7 +36,6 @@ class _TechnicalAnalysisPageState extends State<TechnicalAnalysisPage> {
         showCharts = true;
         errorMessage = '';
       });
-      print(analysisData);
     } else {
       setState(() {
         errorMessage =
@@ -54,8 +60,6 @@ class _TechnicalAnalysisPageState extends State<TechnicalAnalysisPage> {
             child: Column(
               children: [
                 _buildHeader(),
-                _buildInputField(),
-                _buildPerformAnalysisButton(),
                 if (errorMessage.isNotEmpty)
                   Padding(
                     padding: const EdgeInsets.all(16.0),
@@ -80,7 +84,7 @@ class _TechnicalAnalysisPageState extends State<TechnicalAnalysisPage> {
       child: Row(
         children: [
           Text(
-            'Technical Analysis',
+            'Technical Analysis - ${widget.stockSymbol.toUpperCase()}',
             style: TextStyle(
               color: Colors.white,
               fontSize: 24,
@@ -88,55 +92,6 @@ class _TechnicalAnalysisPageState extends State<TechnicalAnalysisPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildInputField() {
-    return Padding(
-      padding: EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Colors.white.withOpacity(0.1),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
-        ),
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16),
-          child: TextField(
-            style: TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'Enter Stock Symbol',
-              hintStyle: TextStyle(color: Colors.white70),
-              border: InputBorder.none,
-            ),
-            onChanged: (value) {
-              stockSymbol = value;
-            },
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPerformAnalysisButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.blueAccent.withOpacity(0.7),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(10),
-          ),
-        ),
-        onPressed: () => performTechnicalAnalysis(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-          child: Text(
-            'Perform Technical Analysis',
-            style: TextStyle(color: Colors.white, fontSize: 16),
-          ),
-        ),
       ),
     );
   }

@@ -40,7 +40,7 @@ class _StockPageState extends State<StockPage> {
     try {
       final data = await fetchHistoricalStockData(
         widget.stockDetails['symbol'] ?? '',
-        'IN', // Assuming all stocks are Indian
+        //ssuming all stocks are Indian
       );
       setState(() {
         stockData = data;
@@ -54,29 +54,44 @@ class _StockPageState extends State<StockPage> {
     }
   }
 
-  Future<Map<String, dynamic>> fetchHistoricalStockData(
-      String symbol, String region) async {
-    final String apiUrl =
-        'https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v3/get-insights';
-    final Map<String, String> queryParams = {
-      'symbol': symbol,
-      'region': region,
-    };
+  Future<Map<String, dynamic>> fetchHistoricalStockData(String symbol) async {
+    try {
+      final String apiUrl =
+          'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$alphaVantageKey';
 
-    final Uri uri = Uri.parse(apiUrl).replace(queryParameters: queryParams);
+      final Uri uri = Uri.parse(apiUrl);
+      final response = await http.get(uri).timeout(Duration(seconds: 10));
 
-    final response = await http.get(
-      uri,
-      headers: {
-        'x-rapidapi-host': 'apidojo-yahoo-finance-v1.p.rapidapi.com',
-        'x-rapidapi-key': RapidApiKEy,
-      },
-    ).timeout(Duration(seconds: 10));
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        print('API Response: $data');
 
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to load stock data: ${response.statusCode}');
+        if (data.containsKey('Time Series (Daily)')) {
+          final Map<String, dynamic> timeSeries = data['Time Series (Daily)'];
+
+          // Extract the most recent 10 days of data
+          final List<Map<String, dynamic>> priceList = timeSeries.entries
+              .take(10)
+              .map((entry) => {
+                    'date': entry.key,
+                    'open': entry.value['1. open'],
+                    'high': entry.value['2. high'],
+                    'low': entry.value['3. low'],
+                    'close': entry.value['4. close'],
+                    'volume': entry.value['5. volume'],
+                  })
+              .toList();
+
+          return {'prices': priceList};
+        } else {
+          throw Exception('Invalid API response format');
+        }
+      } else {
+        throw Exception('Failed to fetch data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching historical stock data: $e');
+      throw e;
     }
   }
 
