@@ -1,7 +1,6 @@
 import 'package:datazen/core/theme/app_pallete.dart';
 import 'package:flutter/material.dart';
 
-
 class AppTheme {
   static final appTheme = ThemeData.dark().copyWith(
       colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -22,17 +21,17 @@ class AppTheme {
     hintStyle: TextStyle(color: Colors.grey), // Grey hint for consistency
     disabledBorder: OutlineInputBorder(
       borderSide: BorderSide(color: Pallete.inactiveColor, width: 1.5),
-      borderRadius: BorderRadius.circular(30), // Rounded to match button style
+      borderRadius: BorderRadius.circular(15), // Rounded to match button style
     ),
     focusedBorder: OutlineInputBorder(
       borderSide:
           BorderSide(color: Colors.white, width: 1.5), // White border on focus
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(15),
     ),
     enabledBorder: OutlineInputBorder(
       borderSide: BorderSide(
           color: Pallete.primaryColor, width: 1.5), // Primary color border
-      borderRadius: BorderRadius.circular(30),
+      borderRadius: BorderRadius.circular(15),
     ),
   );
 }

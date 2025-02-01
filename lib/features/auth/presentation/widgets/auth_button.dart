@@ -1,7 +1,6 @@
 import 'package:datazen/core/theme/app_pallete.dart';
 import 'package:flutter/material.dart';
 
-
 class AuthButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -23,7 +22,7 @@ class AuthButton extends StatelessWidget {
         elevation: 0,
         backgroundColor: isInverted ? Pallete.whiteColor : Pallete.primaryColor,
         foregroundColor: isInverted ? Pallete.primaryColor : Pallete.whiteColor,
-        minimumSize: const Size(200, 38),
+        minimumSize: const Size(200, 45),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(10),
           side: BorderSide(
@@ -44,7 +43,8 @@ class AuthButton extends StatelessWidget {
             )
           : Text(
               text,
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.normal),
+              style:
+                  const TextStyle(fontSize: 20, fontWeight: FontWeight.normal),
             ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
+import 'package:datazen/pages/sp_home.dart';
 import 'package:flutter/material.dart';
 
 class LayoutPage extends StatefulWidget {
@@ -12,13 +13,14 @@ class _LayoutPageState extends State<LayoutPage> {
   int _selectedIndex = 1;
 
   final List<Widget> _pages = [
+    HomePage(),
     Scaffold(),
     Scaffold(),
     Scaffold(),
     Scaffold(),
     Scaffold(),
     // WatchListPage(),
-    //HomePage(),
+
     //RecommendationPage(),
     //TechnicalAnalysisPage(),
     //FinanceAdvisorChat()

@@ -5,7 +5,6 @@ import 'package:datazen/features/auth/presentation/widgets/auth_button.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-
 class LandingPage extends StatefulWidget {
   const LandingPage({super.key});
 
@@ -17,6 +16,7 @@ class _LandingPageState extends State<LandingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color.fromARGB(255, 29, 0, 53),
       body: Padding(
         padding: const EdgeInsets.all(0),
         child: Column(
@@ -57,13 +57,15 @@ class _LandingPageState extends State<LandingPage> {
                           color: Pallete.primaryColor,
                         ),
                       ),
-                      const SizedBox(height: 8), // Add spacing between text elements
+                      const SizedBox(
+                          height: 8), // Add spacing between text elements
                       Text(
                         "Teaching has never been any easier!",
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w500,
-                          color: Pallete.whiteColor, // Use white for better contrast
+                          color: Pallete
+                              .whiteColor, // Use white for better contrast
                         ),
                       ),
                     ],
