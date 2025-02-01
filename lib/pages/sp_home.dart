@@ -473,7 +473,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                         ),
                         SizedBox(width: 15),
                         Text(
-                          'Profit Pocket',
+                          'FinSight',
                           style: TextStyle(
                               fontSize: 30,
                               color: Theme.of(context).focusColor),

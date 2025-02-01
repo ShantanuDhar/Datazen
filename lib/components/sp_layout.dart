@@ -14,14 +14,15 @@ class _LayoutPageState extends State<LayoutPage> {
 
   final List<Widget> _pages = [
     HomePage(),
-    Scaffold(),
-    Scaffold(),
+     RecommendationPage(),
+  
+    
     Scaffold(),
     Scaffold(),
     Scaffold(),
     // WatchListPage(),
 
-    //RecommendationPage(),
+   
     //TechnicalAnalysisPage(),
     //FinanceAdvisorChat()
   ];

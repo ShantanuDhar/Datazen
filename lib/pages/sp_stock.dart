@@ -6,7 +6,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-
 class StockPage extends StatefulWidget {
   final Map<String, dynamic> stockDetails;
 
@@ -58,7 +57,7 @@ class _StockPageState extends State<StockPage> {
   Future<Map<String, dynamic>> fetchHistoricalStockData(
       String symbol, String region) async {
     final String apiUrl =
-        'https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v3/get-historical-data';
+        'https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v3/get-insights';
     final Map<String, String> queryParams = {
       'symbol': symbol,
       'region': region,

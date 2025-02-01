@@ -47,28 +47,34 @@ class _WatchListPageState extends State<WatchListPage> {
   }
 
   Future<Map<String, dynamic>> fetchLatestStockData(String symbol) async {
-    final String apiUrl =
-        'https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v3/get-historical-data';
-    final Map<String, String> queryParams = {
-      'symbol': symbol,
-      'region': 'IN',
-    };
+    try {
+      final String apiUrl =
+          'https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v3/get-insights';
+      final Map<String, String> queryParams = {
+        'symbol': symbol,
+        'region': 'IN',
+      };
 
-    final Uri uri = Uri.parse(apiUrl).replace(queryParameters: queryParams);
+      final Uri uri = Uri.parse(apiUrl).replace(queryParameters: queryParams);
 
-    final response = await http.get(
-      uri,
-      headers: {
-        'x-rapidapi-host': 'apidojo-yahoo-finance-v1.p.rapidapi.com',
-        'x-rapidapi-key': RapidApiKEy,
-      },
-    ).timeout(Duration(seconds: 10));
+      final response = await http.get(
+        uri,
+        headers: {
+          'x-rapidapi-host': 'apidojo-yahoo-finance-v1.p.rapidapi.com',
+          'x-rapidapi-key': RapidApiKEy,
+        },
+      ).timeout(Duration(seconds: 10));
 
-    if (response.statusCode == 200) {
-      final data = json.decode(response.body);
-      return data['prices']?[0];
-    } else {
-      throw Exception('Failed to load stock data: ${response.statusCode}');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        return data['prices']?[0];
+      } else {
+        print(response.body);
+        throw Exception('Failed to load stock data: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching latest stock data: $e');
+      throw e;
     }
   }
 
@@ -177,7 +183,8 @@ class _WatchListPageState extends State<WatchListPage> {
                         itemCount: watchList.length,
                         itemBuilder: (context, index) {
                           final stock = watchList[index];
-                          final stockData = stock.data() as Map<String, dynamic>;
+                          final stockData =
+                              stock.data() as Map<String, dynamic>;
 
                           // Fetch and update the price and trend in real-time
                           _fetchStockPrice(stockData);
@@ -246,7 +253,8 @@ class _WatchListPageState extends State<WatchListPage> {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (context) => StockPage(stockData),
+                                      builder: (context) =>
+                                          StockPage(stockData),
                                     ),
                                   );
                                 },
