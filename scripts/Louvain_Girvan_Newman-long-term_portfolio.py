@@ -21,8 +21,8 @@ import logging
 from statsmodels.tsa.arima.model import ARIMA
 from pmdarima import auto_arima
 
-# from dotenv import load_dotenv
-# load_dotenv()
+from dotenv import load_dotenv
+load_dotenv()
 
 
 class EnhancedIndianMarketAnalyzer:

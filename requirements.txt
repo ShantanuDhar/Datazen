@@ -20,3 +20,5 @@ prophet
 python-louvain
 statsmodels
 pmdarima
+community
+arch
