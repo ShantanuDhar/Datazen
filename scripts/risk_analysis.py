@@ -599,4 +599,3 @@ class StockRiskAnalyzerAPI(StockRiskAnalyzer):
         except Exception as e:
             print(f"An error occurred while generating the risk report: {str(e)}")
             return None
-

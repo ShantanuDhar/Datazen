@@ -9,11 +9,13 @@ from scripts.recommendation2 import SectorAnalysisRAG
 from scripts.recommendation3 import IntegratedStockAnalyzer
 from scripts.risk_analysis import StockRiskAnalyzerAPI
 from scripts.technical_analysis import UniversalStockAnalyzer
+from scripts.Louvain_Girvan_Newman_long_term_portfolio import EnhancedIndianMarketAnalyzer
 import logging
 import json
 import datetime
 import warnings
 import numpy as np
+
 
 
 warnings.filterwarnings('ignore', category=DeprecationWarning, module='langchain')
@@ -412,6 +414,158 @@ def indian_news():
         return jsonify({"indian_news": processed_news}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/lgn', methods=['GET'])
+def analyze_portfolio():
+    """Endpoint to trigger portfolio analysis and return results."""
+    try:
+        # Get parameters with defaults
+        start_date = request.args.get('start_date', (datetime.now() - timedelta(days=3*365)).strftime('%Y-%m-%d'))
+        end_date = request.args.get('end_date', datetime.now().strftime('%Y-%m-%d'))
+        
+        # Define your sector mapping here or import it
+        sector_mapping = {
+    "RELIANCE.NS": "Energy",
+    "TCS.NS": "IT",
+    "HDFCBANK.NS": "Banking",
+    "INFY.NS": "IT",
+    "ICICIBANK.NS": "Banking",
+    "HINDUNILVR.NS": "FMCG",
+    "ITC.NS": "FMCG",
+    "SBIN.NS": "Banking",
+    "BHARTIARTL.NS": "Telecom",
+    "KOTAKBANK.NS": "Banking",
+    "LT.NS": "Infrastructure",
+    "AXISBANK.NS": "Banking",
+    "ASIANPAINT.NS": "FMCG",
+    "HCLTECH.NS": "IT",
+    "BAJFINANCE.NS": "Financial Services",
+    "WIPRO.NS": "IT",
+    "MARUTI.NS": "Automobile",
+    "ULTRACEMCO.NS": "Cement",
+    "NESTLEIND.NS": "FMCG",
+    "TITAN.NS": "Consumer Durables",
+    "TECHM.NS": "IT",
+    "SUNPHARMA.NS": "Pharma",
+    "M&M.NS": "Automobile",
+    "ADANIGREEN.NS": "Renewable Energy",
+    "POWERGRID.NS": "Energy",
+    "NTPC.NS": "Energy",
+    "ONGC.NS": "Energy",
+    "BPCL.NS": "Energy",
+    "INDUSINDBK.NS": "Banking",
+    "GRASIM.NS": "Cement",
+    "ADANIPORTS.NS": "Logistics",
+    "JSWSTEEL.NS": "Steel",
+    "COALINDIA.NS": "Energy",
+    "DRREDDY.NS": "Pharma",
+    "APOLLOHOSP.NS": "Healthcare",
+    "EICHERMOT.NS": "Automobile",
+    "BAJAJFINSV.NS": "Financial Services",
+    "TATAMOTORS.NS": "Automobile",
+    "DIVISLAB.NS": "Pharma",
+    "HDFCLIFE.NS": "Insurance",
+    "CIPLA.NS": "Pharma",
+    "HEROMOTOCO.NS": "Automobile",
+    "SBICARD.NS": "Financial Services",
+    "ADANIENT.NS": "Conglomerate",
+    "UPL.NS": "Chemicals",
+    "BRITANNIA.NS": "FMCG",
+    "ICICIPRULI.NS": "Insurance",
+    "SHREECEM.NS": "Cement",
+    "PIDILITIND.NS": "Chemicals",
+    "DMART.NS": "Retail",
+    "ABB.NS": "Industrial Equipment",
+    "AIAENG.NS": "Engineering",
+    "ALKEM.NS": "Pharma",
+    "AMBUJACEM.NS": "Cement",
+    "AUROPHARMA.NS": "Pharma",
+    "BANDHANBNK.NS": "Banking",
+    "BERGEPAINT.NS": "FMCG",
+    "BOSCHLTD.NS": "Automobile",
+    "CANBK.NS": "Banking",
+    "CHOLAFIN.NS": "Financial Services",
+    "CUMMINSIND.NS": "Industrial Equipment",
+    "DABUR.NS": "FMCG",
+    "DLF.NS": "Real Estate",
+    "ESCORTS.NS": "Automobile",
+    "FEDERALBNK.NS": "Banking",
+    "GLAND.NS": "Pharma",
+    "GLAXO.NS": "Pharma",
+    "GODREJCP.NS": "FMCG",
+    "GODREJPROP.NS": "Real Estate",
+    "HAL.NS": "Aerospace",
+    "HAVELLS.NS": "Consumer Durables",
+    "IGL.NS": "Energy",
+    "IRCTC.NS": "Transportation",
+    "LICI.NS": "Insurance",
+    "LUPIN.NS": "Pharma",
+    "NAUKRI.NS": "IT Services",
+    "PEL.NS": "Financial Services",
+    "PFC.NS": "Energy",
+    "PNB.NS": "Banking",
+    "RECLTD.NS": "Energy",
+    "SIEMENS.NS": "Industrial Equipment",
+    "SRF.NS": "Chemicals",
+    "TATACHEM.NS": "Chemicals",
+    "TATAELXSI.NS": "IT",
+    "TRENT.NS": "Retail",
+    "TVSMOTOR.NS": "Automobile",
+    "VBL.NS": "FMCG",
+    "VEDL.NS": "Metals",
+    "WHIRLPOOL.NS": "Consumer Durables",
+    "ZOMATO.NS": "Food Services",
+    "INOXWIND.NS": "Renewable Energy",
+    "SOLARA.NS": "Pharma",
+    "INOXGREEN.NS": "Renewable Energy",
+    "MOTHERSON.NS": "Automobile",
+    "LLOYDSENGG.NS": "Steel",
+    "HCC.NS": "Infrastructure",
+    "CAMLINFINE.NS": "Chemicals",
+    "AURUM.NS": "Real Estate",
+    "AXISCADES.NS": "Engineering"
+        }
+
+        # Create an instance of the analyzer
+        analyzer = EnhancedIndianMarketAnalyzer(start_date=start_date, end_date=end_date, sector_mapping=sector_mapping)
+
+        # Perform the analysis
+        analyzer.fetch_data(list(sector_mapping.keys()))
+        analyzer.calculate_returns()
+        analyzer.build_correlation_matrix(threshold=0.3)
+        analyzer.create_network_graph()
+        
+        # Detect communities and analyze performance
+        partition = analyzer.detect_communities_louvain()
+        comm_analysis = analyzer.analyze_communities(partition)
+        
+        # Optimize portfolio
+        portfolio = analyzer.optimize_portfolio(
+            target_return=0.15,
+            risk_free_rate=0.05,
+            max_sector_exposure=0.30,
+            max_stock_weight=0.15
+        )
+
+        if portfolio is None:
+            return jsonify({"error": "Portfolio optimization failed"}), 500
+
+        # Format notification
+        notification = analyzer.format_notification(portfolio, [])
+
+        return jsonify({
+            "message": notification,
+            "portfolio_metrics": {
+                "expected_return": portfolio['expected_return'],
+                "volatility": portfolio['volatility'],
+                "sharpe_ratio": portfolio['sharpe_ratio']
+            }
+        }), 200
+
+    except Exception as e:
+        logger.error(f"Error in analyze_portfolio: {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/stock-info', methods=['POST'])
 def stock_info_endpoint():
