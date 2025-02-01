@@ -30,7 +30,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   late Animation _animationThree;
 
   final String _textName = "Hey, Shantanu";
-  final String _textWelcome = "Welcome to Profit Pocket";
+  final String _textWelcome = "Welcome to FinSight";
 
   TextEditingController _textSearch = TextEditingController();
   final _formKey = GlobalKey<FormState>();
