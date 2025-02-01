@@ -320,7 +320,7 @@ def health_check1():
 
 #Risk Analysis
 @app.route('/analyze_risk', methods=['POST'])
-def analyze_portfolio():
+def analyze_risk():
     try:
         data = request.get_json()
         
