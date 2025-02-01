@@ -382,6 +382,7 @@ def analyze_stock():
 
 
 from scripts.gloabal_short_term import check_news
+from scripts.indian_short_term_new import check_indian_news
 
 # @app.route('/global_news', methods=['GET'])
 # def check_news():
@@ -400,6 +401,14 @@ def global_news():
     try:
         processed_news = check_news()
         return jsonify({"news": processed_news}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/indian_news', methods=['GET'])
+def indian_news():
+    try:
+        processed_news = check_indian_news()
+        return jsonify({"indian_news": processed_news}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
