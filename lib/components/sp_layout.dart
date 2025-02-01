@@ -1,5 +1,7 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
 import 'package:datazen/pages/sp_home.dart';
+import 'package:datazen/pages/sp_recommendation.dart';
+
 import 'package:flutter/material.dart';
 
 class LayoutPage extends StatefulWidget {
@@ -14,15 +16,12 @@ class _LayoutPageState extends State<LayoutPage> {
 
   final List<Widget> _pages = [
     HomePage(),
-     RecommendationPage(),
-  
-    
+    RecommendationPage(),
     Scaffold(),
     Scaffold(),
     Scaffold(),
     // WatchListPage(),
 
-   
     //TechnicalAnalysisPage(),
     //FinanceAdvisorChat()
   ];

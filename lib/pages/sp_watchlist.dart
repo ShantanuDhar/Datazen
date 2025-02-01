@@ -1,4 +1,4 @@
-import 'package:datazen/apikeys.dart';
+import 'package:datazen/apikeys.dart'; // Store your Alpha Vantage API key here
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -15,19 +15,48 @@ class WatchListPage extends StatefulWidget {
 }
 
 class _WatchListPageState extends State<WatchListPage> {
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
-  Future<void> _fetchStockPrice(Map<String, dynamic> stock) async {
+  /// Fetch stock price using Alpha Vantage
+  Future<Map<String, dynamic>> fetchStockPrice(String symbol) async {
     try {
-      final priceData = await fetchLatestStockData(stock['symbol']);
-      stock['price'] = priceData['close'].toString();
-      stock['change'] = priceData['close'] > priceData['open'] ? 'up' : 'down';
+      final symbolBSE = symbol.replaceAll('.NS', '.BSE');
+      final url = Uri.parse(
+          'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=$symbolBSE&apikey=$alphaVantageKey');
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final quote = data['Global Quote'];
+
+        if (quote == null || quote.isEmpty) {
+          throw Exception("Invalid symbol or data not found");
+        }
+
+        return {
+          'price': quote['05. price'],
+          'change': double.parse(quote['09. change']) > 0 ? 'up' : 'down',
+        };
+      } else {
+        throw Exception(
+            'Failed to fetch stock data: ${response.statusCode} - ${response.body}');
+      }
+    } catch (e) {
+      print('Error fetching stock data: $e');
+      throw e;
+    }
+  }
+
+  /// Fetch stock price and update Firebase
+  Future<void> _updateStockPrice(Map<String, dynamic> stock) async {
+    try {
+      final stockData = await fetchStockPrice(stock['symbol']);
+      stock['price'] = stockData['price'];
+      stock['change'] = stockData['change'];
 
       final userId = FirebaseAuth.instance.currentUser?.uid;
       if (userId != null) {
@@ -42,39 +71,7 @@ class _WatchListPageState extends State<WatchListPage> {
         });
       }
     } catch (e) {
-      print('Error fetching stock price: $e');
-    }
-  }
-
-  Future<Map<String, dynamic>> fetchLatestStockData(String symbol) async {
-    try {
-      final String apiUrl =
-          'https://apidojo-yahoo-finance-v1.p.rapidapi.com/stock/v3/get-insights';
-      final Map<String, String> queryParams = {
-        'symbol': symbol,
-        'region': 'IN',
-      };
-
-      final Uri uri = Uri.parse(apiUrl).replace(queryParameters: queryParams);
-
-      final response = await http.get(
-        uri,
-        headers: {
-          'x-rapidapi-host': 'apidojo-yahoo-finance-v1.p.rapidapi.com',
-          'x-rapidapi-key': RapidApiKEy,
-        },
-      ).timeout(Duration(seconds: 10));
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['prices']?[0];
-      } else {
-        print(response.body);
-        throw Exception('Failed to load stock data: ${response.statusCode}');
-      }
-    } catch (e) {
-      print('Error fetching latest stock data: $e');
-      throw e;
+      print('Error updating stock price: $e');
     }
   }
 
@@ -187,7 +184,7 @@ class _WatchListPageState extends State<WatchListPage> {
                               stock.data() as Map<String, dynamic>;
 
                           // Fetch and update the price and trend in real-time
-                          _fetchStockPrice(stockData);
+                          _updateStockPrice(stockData);
 
                           return Dismissible(
                             key: Key(stockData['symbol']),

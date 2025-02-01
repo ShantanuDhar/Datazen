@@ -20,14 +20,12 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:logger/logger.dart';
 
-
 final serviceLocator = GetIt.instance;
 Future<void> initDependencies() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
   _initAuth();
-
 
   final FirebaseAuth firebaseAuth = FirebaseAuth.instance;
   final FirebaseFirestore firebaseFirestore = FirebaseFirestore.instance;
@@ -106,8 +104,8 @@ void _initAuth() {
       ),
     )
     ..registerFactory(() => AuthBloc(
-      updateEmailVerification: serviceLocator(),
-      logger: serviceLocator(),
+          updateEmailVerification: serviceLocator(),
+          logger: serviceLocator(),
           userSignup: serviceLocator(),
           userLogin: serviceLocator(),
           currentUser: serviceLocator(),
