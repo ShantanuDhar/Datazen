@@ -383,6 +383,7 @@ def analyze_stock():
 
 from scripts.gloabal_short_term import check_news
 from scripts.indian_short_term_new import check_indian_news
+from scripts.ticker import get_stock_info
 
 # @app.route('/global_news', methods=['GET'])
 # def check_news():
@@ -411,6 +412,56 @@ def indian_news():
         return jsonify({"indian_news": processed_news}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+@app.route('/stock-info', methods=['POST'])
+def stock_info_endpoint():
+    # Get ticker symbol from query parameter
+    data = request.get_json()
+    
+    # Validate ticker symbol
+    if not data or 'ticker' not in data:
+        return jsonify({
+            "error": "Missing ticker symbol in request body",
+            "status": 400
+        }), 400
+    
+    ticker_symbol = data['ticker']
+    
+    # Validate ticker symbol
+    if not ticker_symbol:
+        return jsonify({
+            "error": "Missing ticker symbol",
+            "status": 400
+        }), 400
+    
+    try:
+        # Call the existing get_stock_info function
+        stock_data = get_stock_info(ticker_symbol)
+        
+        if stock_data is None:
+            return jsonify({
+                "error": "No stock data found",
+                "ticker": ticker_symbol,
+                "status": 404
+            }), 404
+        
+        # Convert DataFrame to list of dictionaries
+        stock_records = stock_data.to_dict(orient='records')
+        
+        return jsonify({
+            "ticker": ticker_symbol,
+            "data": stock_records,
+            "status": 200
+        }), 200
+    
+    except Exception as e:
+        return jsonify({
+            "error": str(e),
+            "ticker": ticker_symbol,
+            "status": 500
+        }), 500
+
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

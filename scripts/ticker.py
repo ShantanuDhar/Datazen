@@ -14,7 +14,7 @@ def get_stock_info(ticker_symbol):
     """
     try:
         # Append .NS for NSE stocks
-        nse_symbol = f"{ticker_symbol}.NS"
+        nse_symbol = f"{ticker_symbol}"
         stock = yf.Ticker(nse_symbol)
         
         # Get end date (today) and start date (10 days ago)
@@ -81,8 +81,8 @@ def display_stock_data(ticker_symbol):
             print(f"Change Direction: {row['Change_Direction']}")
             print("-" * 40)
 
-# Example usage
-if __name__ == "__main__":
-    print("Enter Indian stock symbol (e.g., RELIANCE, TCS, INFY)")
-    stock_symbol = input("Stock symbol: ").upper()
-    display_stock_data(stock_symbol)
+# # Example usage
+# if __name__ == "__main__":
+#     print("Enter Indian stock symbol (e.g., RELIANCE, TCS, INFY)")
+#     stock_symbol = input("Stock symbol: ").upper()
+#     display_stock_data(stock_symbol)
