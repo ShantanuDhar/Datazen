@@ -12,7 +12,6 @@ from scripts.technical_analysis import UniversalStockAnalyzer
 from scripts.Louvain_Girvan_Newman_long_term_portfolio import EnhancedIndianMarketAnalyzer
 import logging
 import json
-import datetime
 import warnings
 import numpy as np
 
