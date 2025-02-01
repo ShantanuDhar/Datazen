@@ -381,7 +381,27 @@ def analyze_stock():
     return jsonify(report)
 
 
+from scripts.gloabal_short_term import check_news
 
+# @app.route('/global_news', methods=['GET'])
+# def check_news():
+#     """Flask route to retrieve and process news"""
+#     try:
+#         processed_news=check_news()
+#         # print(processed_news)
+#         return jsonify({'news':processed_news}), 200
+
+#     except Exception as e:
+#         return jsonify({"error": str(e)}), 500
+
+
+@app.route('/global_news', methods=['GET'])
+def global_news():
+    try:
+        processed_news = check_news()
+        return jsonify({"news": processed_news}), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
