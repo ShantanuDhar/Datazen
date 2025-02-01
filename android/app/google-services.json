@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "66143272607",
+    "project_id": "datazen-dbcf4",
+    "storage_bucket": "datazen-dbcf4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:66143272607:android:b26d18d36bc47d2aadacaa",
+        "android_client_info": {
+          "package_name": "com.example.datazen"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "66143272607-5s8jkcejmcemubosspdnm6ebenvrfs40.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDx9JRqc33ZPNt2JgwdaJ8CnpQFGOOUNHg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "66143272607-5s8jkcejmcemubosspdnm6ebenvrfs40.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
