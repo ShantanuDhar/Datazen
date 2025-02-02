@@ -10,6 +10,7 @@ from scripts.recommendation3 import IntegratedStockAnalyzer
 from scripts.risk_analysis import StockRiskAnalyzerAPI
 from scripts.technical_analysis import UniversalStockAnalyzer
 from scripts.Louvain_Girvan_Newman_long_term_portfolio import EnhancedIndianMarketAnalyzer
+from scripts.short_term_mom_stock import BSEStockAnalyzer
 import logging
 import json
 import warnings
@@ -640,6 +641,43 @@ def process():
     }
     
     return jsonify(response_payload)
+
+def format_analysis_results(results):
+    """Helper function to format analysis results for JSON response"""
+    if not results:
+        return None
+    
+    # Format industry momentum
+    industry_momentum = results['industry_momentum'].reset_index()
+    industry_momentum.columns = ['Industry', 'Momentum_Score']
+    
+    # Format top 10 stocks
+    top_stocks = results['relative_strength'].head(10).reset_index()
+    top_stocks.columns = ['Symbol', 'Relative_Strength', 'Industry', 'Company']
+    
+    return {
+        'industries': industry_momentum.to_dict(orient='records'),
+        'top_stocks': top_stocks.to_dict(orient='records')
+    }
+
+@app.route('/industry', methods=['GET'])
+def get_market_analysis():
+    """Endpoint to get market analysis results"""
+    try:
+        analyzer = BSEStockAnalyzer("scripts/Data/Equity (1).csv")
+        results = analyzer.analyze_market()
+        
+        formatted_results = format_analysis_results(results)
+        if not formatted_results:
+            return jsonify({"error": "Analysis failed"}), 500
+            
+        return jsonify(formatted_results)
+    
+    except Exception as e:
+        return jsonify({
+            "error": f"Error processing request: {str(e)}"
+        }), 500
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
