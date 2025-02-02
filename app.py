@@ -14,8 +14,8 @@ import logging
 import json
 import warnings
 import numpy as np
-
-
+from scripts.annual_report import PDFAnalyzer
+import asyncio
 
 warnings.filterwarnings('ignore', category=DeprecationWarning, module='langchain')
 
@@ -614,7 +614,32 @@ def stock_info_endpoint():
             "status": 500
         }), 500
 
+async def run_pipeline():
+    url = "https://www.screener.in/annual-reports/"
+    analyzer = PDFAnalyzer(url)
+    await analyzer.run()
+    return analyzer.results
 
+@app.route("/process", methods=["GET"])
+def process():
+    # Run the asynchronous pipeline and get the results
+    results = asyncio.run(run_pipeline())
+    
+    # Filter each result to only include the PDF URL, FinBERT analysis, and BuySell analysis.
+    filtered_results = []
+    for result in results:
+        entry = {
+            "pdf_url": result.get("PDF_URL", None),
+            "analysis": result.get("Analysis", {}),       # FinBERT analysis output
+            "buy_sell_analysis": result.get("BuySellAnalysis", {})  # BuySell model output
+        }
+        filtered_results.append(entry)
+    
+    response_payload = {
+        "results": filtered_results
+    }
+    
+    return jsonify(response_payload)
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)

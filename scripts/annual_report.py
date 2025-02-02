@@ -7,7 +7,7 @@ import random
 from datetime import datetime
 import pdfplumber
 import re
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional
 import logging
 import torch
 import numpy as np
@@ -50,7 +50,7 @@ class FinBERTAnalyzer:
         except LookupError:
             nltk.download("punkt")
 
-    def analyze_sentiment(self, text: str, chunk_size: int = 512) -> Dict[str, Union[float, List[str]]]:
+    def analyze_sentiment(self, text: str, chunk_size: int = 512) -> Dict[str, float or List[str]]:
         """
         Analyze sentiment of text using FinBERT.
         Splits the text into sentences, and for each sentence, uses the FinBERT
