@@ -45,7 +45,7 @@ def check_indian_news():
 
     for i, item in enumerate(data['data']):
         try:
-            verification_result = check_fake(item['title'])
+            verification_result = check_fake(item['description'])
             output.append({
                 "news": data['data'][i],  # Original news JSON
                 "verification": verification_result  # True or False

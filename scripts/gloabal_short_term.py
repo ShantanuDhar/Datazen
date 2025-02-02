@@ -173,7 +173,7 @@ def check_news():
 
     for i, title in enumerate(titles):
         try:
-            verification_result = check_fake(title)
+            verification_result = check_fake(title +"\n"+data['results'][i]['description'])
             output.append({
                 "news": data['results'][i],  # Original news JSON
                 "verification": verification_result  # True or False
