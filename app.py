@@ -664,7 +664,7 @@ def format_analysis_results(results):
 def get_market_analysis():
     """Endpoint to get market analysis results"""
     try:
-        analyzer = BSEStockAnalyzer("scripts/Data/Equity (1).csv")
+        analyzer = BSEStockAnalyzer("Data/Equity (1).csv")
         results = analyzer.analyze_market()
         
         formatted_results = format_analysis_results(results)
