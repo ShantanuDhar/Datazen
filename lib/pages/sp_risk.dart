@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:typed_data';
 
-
 class RiskAnalysisPage extends StatefulWidget {
   final Map<String, double> portfolioWeights;
 
@@ -26,6 +25,14 @@ class _RiskAnalysisPageState extends State<RiskAnalysisPage> {
   void initState() {
     super.initState();
     analyzePortfolio();
+  }
+
+  /// Method to safely retrieve valid data or show 'N/A'
+  String _safeData(dynamic value) {
+    if (value == null || (value is num && value.isNaN)) {
+      return 'N/A';
+    }
+    return value.toString();
   }
 
   Future<void> analyzePortfolio() async {
@@ -53,11 +60,15 @@ class _RiskAnalysisPageState extends State<RiskAnalysisPage> {
         final plots = responseData['plots'];
 
         setState(() {
-          decodedImage1 = base64Decode(plots['allocation_plot']);
-          decodedImage2 = base64Decode(plots['risks_plot']);
-          decodedImage3 = base64Decode(plots['historical_plot']);
-          // Add the second plot key based on your API response
-          // decodedImage2 = base64Decode(plots['your_second_plot_key']);
+          decodedImage1 = plots['allocation_plot'] != null
+              ? base64Decode(plots['allocation_plot'])
+              : null;
+          decodedImage2 = plots['risks_plot'] != null
+              ? base64Decode(plots['risks_plot'])
+              : null;
+          decodedImage3 = plots['historical_plot'] != null
+              ? base64Decode(plots['historical_plot'])
+              : null;
           isLoading = false;
         });
       } else {
@@ -174,7 +185,7 @@ class _RiskAnalysisPageState extends State<RiskAnalysisPage> {
                                     Text(
                                       widget.portfolioWeights.entries
                                           .map((e) =>
-                                              '${e.key}: ${e.value.toStringAsFixed(2)}%')
+                                              '${e.key}: ${_safeData(e.value)}%')
                                           .join(', '),
                                       style: TextStyle(
                                         color: Colors.white70,
@@ -214,7 +225,10 @@ class _RiskAnalysisPageState extends State<RiskAnalysisPage> {
                                     fit: BoxFit.contain,
                                   ),
                                 ),
-                              ),
+                              )
+                            else
+                              _buildPlaceholder(
+                                  'Allocation Plot Not Available'),
 
                             // Second Analysis Image
                             if (decodedImage2 != null)
@@ -244,7 +258,11 @@ class _RiskAnalysisPageState extends State<RiskAnalysisPage> {
                                     fit: BoxFit.contain,
                                   ),
                                 ),
-                              ),
+                              )
+                            else
+                              _buildPlaceholder('Risks Plot Not Available'),
+
+                            // Third Analysis Image
                             if (decodedImage3 != null)
                               GlassContainer(
                                 height: 300,
@@ -272,7 +290,10 @@ class _RiskAnalysisPageState extends State<RiskAnalysisPage> {
                                     fit: BoxFit.contain,
                                   ),
                                 ),
-                              ),
+                              )
+                            else
+                              _buildPlaceholder(
+                                  'Historical Plot Not Available'),
                           ],
                         ),
                       ),
@@ -280,6 +301,23 @@ class _RiskAnalysisPageState extends State<RiskAnalysisPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder(String message) {
+    return Container(
+      height: 300,
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        message,
+        style: TextStyle(color: Colors.white, fontSize: 16),
+        textAlign: TextAlign.center,
       ),
     );
   }

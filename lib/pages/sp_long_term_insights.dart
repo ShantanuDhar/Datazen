@@ -1,8 +1,9 @@
 import 'dart:io';
 
+import 'package:datazen/core/globalvariables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
-import 'package:path_provider/path_provider.dart';  
+import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 
 class LongTermInsightsPage extends StatefulWidget {
@@ -263,67 +264,134 @@ class _LongTermInsightsPageState extends State<LongTermInsightsPage>
   }
 
   Widget _buildLouvainGirvanNewmanTab() {
-    final lgnData = [
-      {"Community": "Community 1", "Nodes": "25", "Edges": "30"},
-      {"Community": "Community 2", "Nodes": "35", "Edges": "40"},
-      {"Community": "Community 3", "Nodes": "20", "Edges": "15"},
-    ];
+    return FutureBuilder<void>(
+      future: GlobalVariable.fetchAndCacheLGNData(),
+      builder: (context, snapshot) {
+        // Show a loading indicator while fetching data
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        }
 
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            "Louvain Girvan Newman",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+        // Handle errors during fetching
+        if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              "Failed to fetch data. Please try again.",
+              style: TextStyle(color: Colors.red),
+            ),
+          );
+        }
+
+        return Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Louvain Girvan Newman Portfolio",
+                  style: TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 10),
+
+                // Portfolio Message
+                Text(
+                  GlobalVariable.message,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white70,
+                  ),
+                ),
+                SizedBox(height: 20),
+
+                // Portfolio Metrics
+                Text(
+                  "Portfolio Metrics",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 10),
+                _buildMetricRow(
+                    "Expected Return", GlobalVariable.expectedReturn),
+                _buildMetricRow("Sharpe Ratio", GlobalVariable.sharpeRatio),
+                _buildMetricRow("Volatility", GlobalVariable.volatility),
+
+                SizedBox(height: 20),
+
+                // Sector Allocation
+                Text(
+                  "Sector Allocation",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                ),
+                SizedBox(height: 10),
+                _buildSectorAllocation(GlobalVariable.message),
+              ],
             ),
           ),
-          SizedBox(height: 10),
-          Expanded(
-            child: ListView.builder(
-              itemCount: lgnData.length,
-              itemBuilder: (context, index) {
-                final item = lgnData[index];
-                return Container(
-                  margin: EdgeInsets.symmetric(vertical: 8),
-                  padding: EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.white.withOpacity(0.2)),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Community: ${item['Community']}",
-                        style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white),
-                      ),
-                      SizedBox(height: 4),
-                      Text(
-                        "Nodes: ${item['Nodes']}",
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                      Text(
-                        "Edges: ${item['Edges']}",
-                        style: TextStyle(color: Colors.white70),
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
+        );
+      },
+    );
+  }
+
+// Helper widget to display portfolio metrics
+  Widget _buildMetricRow(String label, double value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 16, color: Colors.white),
+          ),
+          Text(
+            value.toStringAsFixed(2),
+            style: TextStyle(fontSize: 16, color: Colors.white70),
           ),
         ],
       ),
     );
+  }
+
+// Helper widget to display sector allocation
+  Widget _buildSectorAllocation(String message) {
+    final sectorData = _parseSectorAllocation(message);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: sectorData.map((sector) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: 4.0),
+          child: Text(
+            sector,
+            style: TextStyle(color: Colors.white70),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+// Helper method to parse sector allocation from the message
+  List<String> _parseSectorAllocation(String message) {
+    final regex = RegExp(r"• (.+?): ([\d.]+%) \(Cum: ([\d.]+%)\)");
+    final matches = regex.allMatches(message);
+
+    return matches.map((match) {
+      final sector = match.group(1) ?? "Unknown Sector";
+      final percentage = match.group(2) ?? "0%";
+      final cumulative = match.group(3) ?? "0%";
+      return "$sector: $percentage (Cumulative: $cumulative)";
+    }).toList();
   }
 
   void _openPdfViewer(BuildContext context, String pdfUrl) {

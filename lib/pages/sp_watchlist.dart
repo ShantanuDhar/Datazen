@@ -1,4 +1,4 @@
-import 'package:datazen/apikeys.dart'; // Store your Alpha Vantage API key here
+import 'package:datazen/core/globalvariables.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -21,29 +21,32 @@ class _WatchListPageState extends State<WatchListPage> {
     SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   }
 
-  /// Fetch stock price using Alpha Vantage
+  /// Fetch stock price using Flask API
   Future<Map<String, dynamic>> fetchStockPrice(String symbol) async {
     try {
-      final symbolBSE = symbol.replaceAll('.NS', '.BSE');
-      final url = Uri.parse(
-          'https://www.alphavantage.co/query?function=GLOBAL_QUOTE&symbol=$symbolBSE&apikey=$alphaVantageKey');
-      final response = await http.get(url);
+      final String apiUrl = '${GlobalVariable.url}/stock-info';
+      final response = await http
+          .post(
+            Uri.parse(apiUrl),
+            headers: {'Content-Type': 'application/json'},
+            body: json.encode({'ticker': symbol}),
+          )
+          .timeout(Duration(seconds: 10));
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        final quote = data['Global Quote'];
-
-        if (quote == null || quote.isEmpty) {
-          throw Exception("Invalid symbol or data not found");
+        if (data['status'] == 200 && data.containsKey('data')) {
+          final latestData = data['data'].isNotEmpty ? data['data'][0] : {};
+          return {
+            'price': latestData['Close'].toString(),
+            'change':
+                latestData['Price_Change']?.toDouble() > 0 ? 'up' : 'down',
+          };
+        } else {
+          throw Exception("Invalid API response");
         }
-
-        return {
-          'price': quote['05. price'],
-          'change': double.parse(quote['09. change']) > 0 ? 'up' : 'down',
-        };
       } else {
-        throw Exception(
-            'Failed to fetch stock data: ${response.statusCode} - ${response.body}');
+        throw Exception('Failed to fetch stock data: ${response.statusCode}');
       }
     } catch (e) {
       print('Error fetching stock data: $e');
@@ -198,17 +201,6 @@ class _WatchListPageState extends State<WatchListPage> {
                                 ),
                               );
                             },
-                            background: Container(
-                              color: Colors.red,
-                              child: Align(
-                                alignment: Alignment.centerRight,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(15.0),
-                                  child:
-                                      Icon(Icons.delete, color: Colors.white),
-                                ),
-                              ),
-                            ),
                             child: Card(
                               margin: EdgeInsets.symmetric(vertical: 5),
                               color: Colors.grey[900],
@@ -224,29 +216,7 @@ class _WatchListPageState extends State<WatchListPage> {
                                   stockData['symbol'],
                                   style: TextStyle(color: Colors.grey[400]),
                                 ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    if (stockData.containsKey('price'))
-                                      Text(
-                                        "\$${stockData['price']}",
-                                        style: TextStyle(
-                                          color: Colors.white,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                    if (stockData.containsKey('change'))
-                                      Icon(
-                                        stockData['change'] == 'up'
-                                            ? Icons.trending_up
-                                            : Icons.trending_down,
-                                        color: stockData['change'] == 'up'
-                                            ? Colors.green
-                                            : Colors.red,
-                                      ),
-                                  ],
-                                ),
-                                onTap: () async {
+                                onTap: () {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(

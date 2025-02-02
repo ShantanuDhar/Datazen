@@ -1,6 +1,7 @@
 // main.dart
 import 'package:datazen/components/sp_layout.dart';
 import 'package:datazen/core/cubits/auth_user/auth_user_cubit.dart';
+import 'package:datazen/core/globalvariables.dart';
 import 'package:datazen/core/theme/theme.dart';
 import 'package:datazen/core/utils/loader.dart';
 import 'package:datazen/features/auth/presentation/bloc/auth_bloc.dart';
@@ -14,7 +15,8 @@ import 'package:logger/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
+    await GlobalVariable.loadCachedLGNData();
+  await GlobalVariable.fetchAndCacheLGNData();
   await initDependencies();
 
   runApp(

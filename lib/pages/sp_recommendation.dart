@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:datazen/core/globalvariables.dart';
+import 'package:datazen/core/utils/format_date.dart';
 import 'package:datazen/pages/sp_long_term_insights.dart';
 import 'package:datazen/pages/sp_portfolio_weight.dart';
 import 'package:datazen/pages/sp_short_term_insights.dart';
@@ -96,7 +97,7 @@ class _RecommendationPageState extends State<RecommendationPage>
       final response = await http.post(
         Uri.parse('${GlobalVariable.url}/get_sector_performance'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'date': '2024-10-24'}),
+        body: json.encode({'date': formatDateYYYYMMDD(DateTime.now())}),
       );
 
       if (response.statusCode == 200) {
@@ -108,6 +109,7 @@ class _RecommendationPageState extends State<RecommendationPage>
         });
       } else {
         print('Failed to fetch sector performance: ${response.statusCode}');
+        print(response.body);
       }
     } catch (e) {
       print('Error fetching sector performance: $e');

@@ -1,4 +1,4 @@
-import 'package:datazen/apikeys.dart';
+import 'package:datazen/core/globalvariables.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -17,7 +17,7 @@ class StockPage extends StatefulWidget {
 
 class _StockPageState extends State<StockPage> {
   bool isLoading = true;
-  Map<String, dynamic> stockData = {};
+  List<Map<String, dynamic>> stockData = [];
   String errorMessage = '';
   bool isInWatchlist = false;
 
@@ -27,70 +27,57 @@ class _StockPageState extends State<StockPage> {
   @override
   void initState() {
     super.initState();
-    fetchStockData();
+    fetchStockData(widget.stockDetails['symbol']).then((data) {
+      setState(() {
+        stockData = data['prices'] ?? [];
+        isLoading = false;
+      });
+    }).catchError((e) {
+      setState(() {
+        errorMessage = 'Error fetching data: $e';
+        isLoading = false;
+      });
+    });
     checkWatchlistStatus();
   }
 
-  Future<void> fetchStockData() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = '';
-    });
-
+  Future<Map<String, dynamic>> fetchStockData(String stockSymbol) async {
     try {
-      final data = await fetchHistoricalStockData(
-        widget.stockDetails['symbol'] ?? '',
-        //ssuming all stocks are Indian
+      final Uri uri = Uri.parse('${GlobalVariable.url}/stock-info');
+      final response = await http.post(
+        uri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'ticker': stockSymbol}),
       );
-      setState(() {
-        stockData = data;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() {
-        isLoading = false;
-        errorMessage = 'Error: ${e.toString()}';
-      });
-    }
-  }
-
-  Future<Map<String, dynamic>> fetchHistoricalStockData(String symbol) async {
-    try {
-      final String apiUrl =
-          'https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=$symbol&outputsize=full&apikey=$alphaVantageKey';
-
-      final Uri uri = Uri.parse(apiUrl);
-      final response = await http.get(uri).timeout(Duration(seconds: 10));
 
       if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        print('API Response: $data');
+        // Replace NaN with 0
+        final sanitizedResponse = response.body.replaceAll('NaN', '0');
+        final Map<String, dynamic> data = json.decode(sanitizedResponse);
 
-        if (data.containsKey('Time Series (Daily)')) {
-          final Map<String, dynamic> timeSeries = data['Time Series (Daily)'];
-
-          // Extract the most recent 10 days of data
-          final List<Map<String, dynamic>> priceList = timeSeries.entries
-              .take(10)
+        if (data['status'] == 200) {
+          final prices = (data['data'] as List<dynamic>)
               .map((entry) => {
-                    'date': entry.key,
-                    'open': entry.value['1. open'],
-                    'high': entry.value['2. high'],
-                    'low': entry.value['3. low'],
-                    'close': entry.value['4. close'],
-                    'volume': entry.value['5. volume'],
+                    'date': entry['Date'],
+                    'open': entry['Open'],
+                    'high': entry['High'],
+                    'low': entry['Low'],
+                    'close': entry['Close'],
+                    'volume': entry['Volume'],
+                    'change': entry['Price_Change'],
+                    'direction': entry['Change_Direction'],
                   })
               .toList();
 
-          return {'prices': priceList};
+          return {'prices': prices};
         } else {
-          throw Exception('Invalid API response format');
+          throw Exception('API returned an error status');
         }
       } else {
         throw Exception('Failed to fetch data: ${response.statusCode}');
       }
     } catch (e) {
-      print('Error fetching historical stock data: $e');
+      print('Error fetching stock data: $e');
       throw e;
     }
   }
@@ -127,10 +114,8 @@ class _StockPageState extends State<StockPage> {
 
     try {
       if (isInWatchlist) {
-        // Remove from Firestore
         await stockDoc.delete();
       } else {
-        // Add to Firestore
         await stockDoc.set(widget.stockDetails);
       }
 
@@ -183,7 +168,21 @@ class _StockPageState extends State<StockPage> {
                       children: [
                         Text(errorMessage, style: TextStyle(color: Colors.red)),
                         ElevatedButton(
-                          onPressed: fetchStockData,
+                          onPressed: () async {
+                            setState(() => isLoading = true);
+                            await fetchStockData(widget.stockDetails['symbol'])
+                                .then((data) {
+                              setState(() {
+                                stockData = data['prices'] ?? [];
+                                isLoading = false;
+                              });
+                            }).catchError((e) {
+                              setState(() {
+                                errorMessage = 'Error fetching data: $e';
+                                isLoading = false;
+                              });
+                            });
+                          },
                           child: Text('Retry'),
                         ),
                       ],
@@ -195,7 +194,16 @@ class _StockPageState extends State<StockPage> {
   }
 
   Widget buildStockDetails() {
-    final latestData = stockData['prices']?[0] ?? {};
+    if (stockData.isEmpty) {
+      return Center(
+        child: Text(
+          'No stock data available',
+          style: TextStyle(color: Colors.white),
+        ),
+      );
+    }
+
+    final latestData = stockData.first;
     return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -213,9 +221,11 @@ class _StockPageState extends State<StockPage> {
             buildInfoCard('Price', latestData['close']?.toString() ?? 'N/A'),
             buildInfoCard('Open', latestData['open']?.toString() ?? 'N/A'),
             buildInfoCard('High', latestData['high']?.toString() ?? 'N/A'),
-            buildInfoCard('Low', latestData['low']?.toString() ?? 'N/A'),
             buildInfoCard('Volume', latestData['volume']?.toString() ?? 'N/A'),
-            buildInfoCard('Date', _formatDate(latestData['date'])),
+            buildInfoCard('Date', latestData['date'] ?? 'N/A'),
+            buildInfoCard(
+                'Price Change', latestData['change']?.toString() ?? 'N/A'),
+            buildInfoCard('Change Direction', latestData['direction'] ?? 'N/A'),
             SizedBox(height: 20),
             buildStockChart(),
           ],
@@ -237,9 +247,8 @@ class _StockPageState extends State<StockPage> {
 
   Widget buildStockChart() {
     List<FlSpot> spots = [];
-    final prices = stockData['prices'] ?? [];
-    for (int i = 0; i < prices.length && i < 10; i++) {
-      final closePrice = prices[i]['close'];
+    for (int i = 0; i < stockData.length && i < 10; i++) {
+      final closePrice = stockData[i]['close'];
       if (closePrice != null) {
         spots.add(FlSpot(i.toDouble(), closePrice.toDouble()));
       }
@@ -271,10 +280,5 @@ class _StockPageState extends State<StockPage> {
         ),
       ),
     );
-  }
-
-  String _formatDate(int? timestamp) {
-    if (timestamp == null) return 'N/A';
-    return DateTime.fromMillisecondsSinceEpoch(timestamp * 1000).toString();
   }
 }
