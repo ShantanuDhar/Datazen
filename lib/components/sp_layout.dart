@@ -1,5 +1,7 @@
 import 'package:convex_bottom_bar/convex_bottom_bar.dart';
+import 'package:datazen/chat_help/chat_Help2.dart';
 import 'package:datazen/pages/sp_home.dart';
+import 'package:datazen/pages/sp_profile.dart';
 import 'package:datazen/pages/sp_recommendation.dart';
 
 import 'package:flutter/material.dart';
@@ -17,13 +19,12 @@ class _LayoutPageState extends State<LayoutPage> {
   final List<Widget> _pages = [
     HomePage(),
     RecommendationPage(),
-    Scaffold(),
-    Scaffold(),
-    Scaffold(),
+    FinanceAdvisorChat(),
+    ProfilePage(),
+    //Scaffold(),
     // WatchListPage(),
 
     //TechnicalAnalysisPage(),
-    //FinanceAdvisorChat()
   ];
 
   void _onItemTapped(int index) {
@@ -54,8 +55,9 @@ class _LayoutPageState extends State<LayoutPage> {
               icon: Icons.record_voice_over_outlined,
               title: 'Recommend',
             ),
-            TabItem(icon: Icons.analytics, title: 'Analyze'),
+            // TabItem(icon: Icons.analytics, title: 'Analyze'),
             TabItem(icon: Icons.chat, title: 'Chat Help'),
+            TabItem(icon: Icons.person, title: 'Profile'),
           ],
           initialActiveIndex: _selectedIndex,
           onTap: _onItemTapped,

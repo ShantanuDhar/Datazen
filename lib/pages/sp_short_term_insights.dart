@@ -12,11 +12,10 @@ class ShortTermInsightsPage extends StatefulWidget {
 }
 
 class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
-  final String apiUrl =
-      "https://api.polygon.io/v2/reference/news?limit=10&apiKey=$polygonKey";
+  // final String apiUrl =
+  //     "https://api.polygon.io/v2/reference/news?limit=10&apiKey=$polygonKey";
   // Replace with your actual ngrok endpoint URL for local news
-  final String ngrokUrl =
-      "https://580b-2409-40c0-18-c343-7be2-2c64-9b57-a18f.ngrok-free.app/indian_news";
+  final String ngrokUrl = "${GlobalVariable.url}/indian_news";
 
   List<dynamic> newsArticles = [];
   List<bool> expandedList = [];
@@ -47,22 +46,15 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
 
   Future<void> fetchNews() async {
     if (isLocalNews) {
+      // Local news implementation remains unchanged.
       try {
-        // GET request to local news endpoint via ngrok
         final response = await http.get(Uri.parse(ngrokUrl));
         if (response.statusCode == 200) {
-          // Print the complete JSON response from the endpoint.
           print("Complete Local News Response: ${response.body}");
-
-          // Decode the response JSON
           final data = json.decode(response.body);
-
-          // Transform the local news response into a structure similar to global news.
-          // We assume the local JSON contains an "indian_news" key with a list of items.
           List<dynamic> localNews = data['indian_news'] ?? [];
           List<dynamic> transformedNews = localNews.map((item) {
             final news = item['news'];
-            // Use the title from the JSON if available, otherwise compute a default title.
             final title = news['title'] ??
                 (news['description']?.split(' ')?.take(6)?.join(' ') + "...");
             final description =
@@ -70,25 +62,20 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
             final imageUrl = news['image_url'] ??
                 'https://via.placeholder.com/350x180.png?text=Local+News';
             final entities = news['entities'] ?? [];
-            // Extract ticker symbols from each entity.
             final tickers = entities.map((e) => e['symbol'] ?? "").toList();
-
             return {
               'title': title,
               'description': description,
               'author': "Local Reporter",
-              // Use the published time from the news JSON if available.
               'published_utc':
                   news['published_at'] ?? DateTime.now().toUtc().toString(),
               'image_url': imageUrl,
               'tickers': tickers,
               'entities': entities,
-              'insights': [], // No sentiment insights provided, leave it empty.
-              // Use the verification field from the outer object.
-              'verification': item['verification'] ?? false
+              'insights': [], // No sentiment insights provided
+              'verification': item['verification'] ?? false,
             };
           }).toList();
-
           setState(() {
             newsArticles = transformedNews;
             expandedList = List.generate(newsArticles.length, (index) => false);
@@ -107,24 +94,55 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
         });
       }
     } else {
-      // Global news from the API
+      // Global news from the API using GlobalVariable.url/global_news
       try {
-        final response = await http.get(Uri.parse(apiUrl));
+        final globalNewsUrl = "${GlobalVariable.url}/global_news";
+        final response = await http.get(Uri.parse(globalNewsUrl));
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
+          // The response structure is assumed to be:
+          // { "news": [ { "news": { ... }, "verification": <bool> }, ... ] }
+          List<dynamic> globalNews = data['news'] ?? [];
+          List<dynamic> transformedNews = globalNews.map((item) {
+            final news = item['news'];
+            // Use the title if available, or fallback to a short version of the description.
+            final title = news['title'] ??
+                (news['description']?.split(' ')?.take(6)?.join(' ') + "...");
+            final description =
+                news['description'] ?? "No description available.";
+            // If image_url is not provided, fallback to a placeholder image.
+            final imageUrl = news['image_url'] ??
+                'https://via.placeholder.com/350x180.png?text=Global+News';
+            // For insights, we use the list provided.
+            final insights = news['insights'] ?? [];
+            // Use tickers from the news key.
+            final tickers = news['tickers'] ?? [];
+            return {
+              'title': title,
+              'description': description,
+              'author': news['author'] ?? "Unknown",
+              'published_utc':
+                  news['published_utc'] ?? DateTime.now().toUtc().toString(),
+              'image_url': imageUrl,
+              'tickers': tickers,
+              'insights': insights,
+              // Use the verification field from the outer object.
+              'verification': item['verification'] ?? false,
+            };
+          }).toList();
           setState(() {
-            newsArticles = data['results'] ?? [];
+            newsArticles = transformedNews;
             expandedList = List.generate(newsArticles.length, (index) => false);
             isLoading = false;
           });
         } else {
-          print("Error fetching news: ${response.statusCode}");
+          print("Error fetching global news: ${response.statusCode}");
           setState(() {
             isLoading = false;
           });
         }
       } catch (e) {
-        print("Exception: $e");
+        print("Exception fetching global news: $e");
         setState(() {
           isLoading = false;
         });
@@ -247,7 +265,9 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
                         final formattedDate =
                             formatDate(article['published_utc']);
                         // Check the verification status.
-                        final isVerified = article['verification'] ?? false;
+                        final isVerified = article['verification'] is String
+                            ? "Cannot determine"
+                            : article['verification'] ?? false;
 
                         return Card(
                           color: Colors.grey[850],
@@ -288,14 +308,20 @@ class _ShortTermInsightsPageState extends State<ShortTermInsightsPage> {
                                       children: [
                                         Icon(Icons.circle,
                                             size: 12,
-                                            color: isVerified
-                                                ? Colors.green
-                                                : Colors.red),
+                                            color: isVerified.toString() ==
+                                                    "Cannot determine"
+                                                ? Colors.grey
+                                                : isVerified
+                                                    ? Colors.green
+                                                    : Colors.red),
                                         SizedBox(width: 4),
                                         Text(
-                                          isVerified
-                                              ? "Verified"
-                                              : "Not Verified",
+                                          isVerified.toString() ==
+                                                  "Cannot determine"
+                                              ? "Cannot determine"
+                                              : isVerified
+                                                  ? "Verified"
+                                                  : "Not Verified",
                                           style: TextStyle(
                                             color: Colors.white,
                                             fontSize: 12,

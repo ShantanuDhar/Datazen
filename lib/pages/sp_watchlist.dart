@@ -127,7 +127,7 @@ class _WatchListPageState extends State<WatchListPage> {
                     ),
                     SizedBox(width: 15),
                     Text(
-                      'Profit Pocket',
+                      'FinSight ',
                       style: TextStyle(
                         fontSize: 35,
                         color: Colors.white,

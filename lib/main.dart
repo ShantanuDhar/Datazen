@@ -15,8 +15,8 @@ import 'package:logger/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-    await GlobalVariable.loadCachedLGNData();
-  await GlobalVariable.fetchAndCacheLGNData();
+  //   await GlobalVariable.loadCachedLGNData();
+  // await GlobalVariable.fetchAndCacheLGNData();
   await initDependencies();
 
   runApp(

@@ -595,7 +595,7 @@ class _RecommendationPageState extends State<RecommendationPage>
           SizedBox(width: 16),
           Expanded(
             child: _buildSquareButton(
-              'Option Trading',
+              'Risk Analysis',
               Icons.warning,
               Colors.red,
               () async {
